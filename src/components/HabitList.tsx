@@ -4,24 +4,35 @@ import {
   endOfWeek,
   format,
   isFuture,
+  isSameDay,
   startOfWeek,
 } from "date-fns";
 
-export type Habit = { id: string; name: string };
+export type Habit = { id: string; name: string; completions: Date[] };
 
 type HabitListProps = {
   habits: Habit[];
   deleteHabit: (id: string) => void;
+  toggleHabit: (id: string, date: Date) => void;
 };
 
-export function HabitList({ habits, deleteHabit }: HabitListProps) {
+export function HabitList({
+  habits,
+  deleteHabit,
+  toggleHabit,
+}: HabitListProps) {
   if (habits.length === 0) {
     return <p>No habits yet</p>;
   }
   return (
     <div className="flex flex-col gap-3">
       {habits.map((habit) => (
-        <HabitItem deleteHabit={deleteHabit} key={habit.id} habit={habit} />
+        <HabitItem
+          toggleHabit={toggleHabit}
+          deleteHabit={deleteHabit}
+          key={habit.id}
+          habit={habit}
+        />
       ))}
     </div>
   );
@@ -30,9 +41,10 @@ export function HabitList({ habits, deleteHabit }: HabitListProps) {
 type HabitItemProps = {
   habit: Habit;
   deleteHabit: (id: string) => void;
+  toggleHabit: (id: string, date: Date) => void;
 };
 
-function HabitItem({ habit, deleteHabit }: HabitItemProps) {
+function HabitItem({ habit, deleteHabit, toggleHabit }: HabitItemProps) {
   const visibleDates = eachDayOfInterval({
     start: startOfWeek(new Date(), { weekStartsOn: 1 }),
     end: endOfWeek(new Date(), { weekStartsOn: 1 }),
@@ -58,6 +70,12 @@ function HabitItem({ habit, deleteHabit }: HabitItemProps) {
             className="flex flex-1 flex-col items-center gap-0.5 rounded-lg text-xs"
             key={date.toISOString()}
             disabled={isFuture(date)}
+            variant={
+              habit.completions.some((d) => isSameDay(date, d))
+                ? "primary"
+                : "secondary"
+            }
+            onClick={() => toggleHabit(habit.id, date)}
           >
             <span className="font-medium">{format(date, "EEE")}</span>
             <span>{format(date, "d")}</span>
