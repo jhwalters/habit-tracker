@@ -6,6 +6,7 @@ import {
   isFuture,
   isSameDay,
   startOfWeek,
+  subDays,
 } from "date-fns";
 
 export type Habit = { id: string; name: string; completions: Date[] };
@@ -49,12 +50,15 @@ function HabitItem({ habit, deleteHabit, toggleHabit }: HabitItemProps) {
     start: startOfWeek(new Date(), { weekStartsOn: 1 }),
     end: endOfWeek(new Date(), { weekStartsOn: 1 }),
   });
+  const streak = getStreak(habit.completions);
   return (
     <div className="rounded-xl bg-zinc-800 p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex gap-3 items-center">
           <span className="font-medium">{habit.name}</span>
-          <span className="text-sm text-amber-400">🔥 3</span>
+          {streak !== 0 && (
+            <span className="text-sm text-amber-400">🔥 {streak}</span>
+          )}
         </div>
         <Button
           onClick={() => deleteHabit(habit.id)}
@@ -84,4 +88,16 @@ function HabitItem({ habit, deleteHabit, toggleHabit }: HabitItemProps) {
       </div>
     </div>
   );
+}
+
+function getStreak(completions: Date[]) {
+  let streak = 0;
+  let date = new Date();
+
+  while (completions.some((c) => isSameDay(c, date))) {
+    streak++;
+    date = subDays(date, 1);
+  }
+
+  return streak;
 }
